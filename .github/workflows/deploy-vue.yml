@@ -1,0 +1,44 @@
+# 工作流名称
+name: 自动部署Vue项目到GitHub Pages
+
+# 触发条件：当推送到main分支时，自动执行工作流
+on:
+  push:
+    branches: [ main ]  # 你的分支名如果是master，改成master
+
+# 工作流任务
+jobs:
+  build-and-deploy:
+    # 运行环境：最新版Ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+      # 步骤1：拉取GitHub仓库的代码到工作流服务器
+      - name: 拉取仓库代码
+        uses: actions/checkout@v4
+
+      # 步骤2：安装Node.js环境（匹配你本地的Node版本，比如18.x）
+      - name: 安装Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          cache: 'npm'  # 缓存npm依赖，加速后续构建
+
+      # 步骤3：安装项目依赖
+      - name: 安装依赖
+        run: npm install
+
+      # 步骤4：打包Vue项目（生成dist文件夹）
+      - name: 打包项目
+        run: npm run build  # 适配你的打包命令，Vue CLI/vite通用
+
+      # 步骤5：部署到GitHub Pages（核心：把dist文件推到gh-pages分支）
+      - name: 部署到Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          # 部署的文件夹：Vue打包后的dist目录
+          folder: dist
+          # 部署到的分支：gh-pages（GitHub Pages默认分支）
+          branch: gh-pages
+          # 自动提交信息
+          commit-message: "自动部署：${{ github.sha }}"
